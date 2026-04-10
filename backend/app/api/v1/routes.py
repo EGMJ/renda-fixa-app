@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 
 from app.core.config import EXEMPT_ASSETS, TAXED_ASSETS
 from app.models.input import AssetType, SimulationInput
@@ -15,7 +16,10 @@ router = APIRouter()
 
 
 @router.post("/simulate", response_model=SimulationOutput)
-async def simulate(input_data: SimulationInput):
+async def simulate( 
+    input_data: SimulationInput, 
+    token: str = Depends( oauth2_scheme )
+    ): # <--- Proteção adicionada ):):
     """
     Executa simulacao de investimento em renda fixa.
     Retorna projeçao de rendimentos, IR detalhado e evoluçao mensal.
