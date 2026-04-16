@@ -3,7 +3,14 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/shared/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle
+} from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -22,7 +29,6 @@ export function LoginForm() {
         const password = formData.get("password");
 
         try {
-            // O FastAPI espera os dados em formato x-www-form-urlencoded por padrão no OAuth2
             const details: Record<string, string> = {
                 username: username as string,
                 password: password as string,
@@ -33,24 +39,31 @@ export function LoginForm() {
                 .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(details[key]))
                 .join("&");
 
-                // Caminho localhost - Tela Login
-            const response = await fetch("https://localhost:8000/api/v1/auth.py", {
+            // ✅ URL CORRETA (sem .py)
+            const response = await fetch("http://127.0.0.1:8000/api/v1/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
                 body: formBody,
             });
 
-            if (!response.ok) throw new Error("Usuário ou senha inválidos");
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.detail || "Usuário ou senha inválidos");
+            }
 
             const data = await response.json();
 
-            // Salva o token (em prod, use cookies HttpOnly para mais segurança)
-            localStorage.setItem("auth_token", data.access_token);
+            // salva token
+            document.cookie = `auth_token=${data.access_token}; path=/`;
 
             toast.success("Login realizado com sucesso!");
-            router.push("/simulation"); // Redireciona para a calculadora
+            router.push("/simular");
+
         } catch (error: any) {
-            toast.error(error.message);
+            console.error(error);
+            toast.error(error.message || "Erro inesperado ao fazer login");
         } finally {
             setLoading(false);
         }
@@ -70,20 +83,35 @@ export function LoginForm() {
                         Entre com suas credenciais para acessar a calculadora
                     </CardDescription>
                 </CardHeader>
+
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="username">Usuário</Label>
-                            <Input id="username" name="username" placeholder="Seu usuário" required />
+                            <Input
+                                id="username"
+                                name="username"
+                                placeholder="Seu usuário"
+                                required
+                            />
                         </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="password">Senha</Label>
-                            <Input id="password" name="password" type="password" required />
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                required
+                            />
                         </div>
                     </CardContent>
+
                     <CardFooter>
                         <Button type="submit" className="w-full" disabled={loading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {loading && (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
                             Entrar
                         </Button>
                     </CardFooter>
