@@ -13,3 +13,14 @@ Aplicação para simular rentabilidade de renda fixa (IR regressivo, PEPS, taxas
 2. No `frontend/`: copie `.env.example` para `.env.local`, rode `npm install` e `npm run dev`.
 
 Documentação detalhada do frontend: [frontend/README.md](frontend/README.md).
+
+### Possiveis Evoluções:
+1. Balanceador de aportes
+2. Registrador de Ativos
+3. Carteira de investimentos (Menos provavel)
+
+
+### Evolução no Design:
+- Facilicar para o cliente leigo, deixando um tooltip do que é cada coisa
+- Aprimorar o Design
+- Priorizar o light mode
