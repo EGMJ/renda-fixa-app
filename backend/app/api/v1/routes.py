@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import APIRouter, HTTPException, Depends
 
 from app.core.config import EXEMPT_ASSETS, TAXED_ASSETS
 from app.models.input import AssetType, SimulationInput
@@ -12,26 +11,30 @@ from app.services.market_data import (
     get_selic_annual_pct,
 )
 
+# Importa autenticação
+from app.api.v1.auth import router as auth_router
+from app.core.security import get_current_user
+
 router = APIRouter()
+
+# inclui rota de login
+router.include_router(auth_router)
 
 
 @router.post("/simulate", response_model=SimulationOutput)
-async def simulate( 
-    input_data: SimulationInput, 
-    token: str = Depends( oauth2_scheme )
-    ): # <--- Proteção adicionada ):):
+async def simulate(
+    input_data: SimulationInput,
+    current_user: str = Depends(get_current_user)
+):
     """
     Executa simulacao de investimento em renda fixa.
-    Retorna projeçao de rendimentos, IR detalhado e evoluçao mensal.
+    Protegido por autenticação JWT.
     """
     try:
-        # Resolve taxa mensal e informaçoes de taxa
         monthly_rate, rate_info = await resolve_monthly_rate(input_data)
 
-        # Verifica isençao
         exempt = is_exempt(input_data.asset_type)
 
-        # Executa simulaçao
         result = run_simulation(
             monthly_rate=monthly_rate,
             period_months=input_data.period_months,
@@ -45,19 +48,15 @@ async def simulate(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500,
-            detail="Erro interno no processamento da simulaçao",
+            detail="Erro interno no processamento da simulação",
         )
 
 
 @router.get("/assets")
 async def list_assets():
-    """
-    Retorna lista de ativos disponiveis com suas categorias tributarias.
-    Util para popular dropdowns no front-end.
-    """
     assets = []
 
     asset_labels = {
@@ -68,10 +67,10 @@ async def list_assets():
         AssetType.TESOURO_IPCA: "Tesouro IPCA+",
         AssetType.TESOURO_PREFIXADO: "Tesouro Prefixado",
         AssetType.DEBENTURE: "Debenture",
-        AssetType.LCI: "LCI (Letra de Credito Imobiliario) - Isenta",
-        AssetType.LCA: "LCA (Letra de Credito do Agronegocio) - Isenta",
-        AssetType.CRI: "CRI (Certificado de Recebiveis Imobiliarios) - Isento",
-        AssetType.CRA: "CRA (Certificado de Recebiveis do Agronegocio) - Isento",
+        AssetType.LCI: "LCI - Isenta",
+        AssetType.LCA: "LCA - Isenta",
+        AssetType.CRI: "CRI - Isento",
+        AssetType.CRA: "CRA - Isento",
         AssetType.DEBENTURE_INCENTIVADA: "Debenture Incentivada - Isenta",
         AssetType.POUPANCA: "Poupança",
     }
@@ -97,10 +96,6 @@ async def list_assets():
 
 @router.get("/market-rates")
 async def get_market_rates():
-    """
-    Retorna as taxas de mercado atuais (Selic, IPCA, Poupança).
-    Permite que o front-end exiba taxas antes da simulaçao.
-    """
     try:
         selic_pct = await get_selic_annual_pct()
         ipca_pct = await get_ipca_annual_pct()
@@ -111,9 +106,10 @@ async def get_market_rates():
             "ipca_pct": round(ipca_pct, 2),
             "poupanca_monthly_pct": round(poupanca_monthly_pct, 4),
         }
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=503,
             detail="Erro ao buscar taxas de mercado",
@@ -122,7 +118,11 @@ async def get_market_rates():
 
 @router.get("/health")
 async def health_check():
-    """Endpoint de health check."""
     from app.core.config import API_VERSION
-
     return {"status": "ok", "version": API_VERSION}
+
+
+# 🔥 Rota de teste (fora de qualquer função!)
+@router.get("/test")
+async def test():
+    return {"ok": True}
