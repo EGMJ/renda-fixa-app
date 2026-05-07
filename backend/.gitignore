@@ -1,0 +1,55 @@
+*.whl
+
+# PyInstaller
+# Please considered using `.gitignore` from the official page at https://github.com
+# when using PyInstaller.
+# spec file
+*.spec
+# auto-generated script
+*script.py
+# build directories
+build/
+dist/
+# bootloader cache files
+.bootloader/
+
+# Unit test and coverage
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.hypothesis/
+.spyder-py3/
+.ruff_cache/
+
+# Editors and IDEs
+# Visual Studio Code
+.vscode/
+# PyCharm
+.idea/
+# Spyder
+.spyderproject
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Virtual environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Miscellaneous
+# OS generated files
+.DS_Store
+.project
+.settings
+.loadpath
+
+**/__pycache__/

@@ -1,0 +1,31 @@
+# ============================================================
+# Dependências do backend – Renda Fixa API
+# ============================================================
+
+# --- Framework principal ---
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# --- Validação de dados (Pydantic v2) ---
+pydantic==2.5.3
+pydantic[email]==2.5.3
+
+# --- Banco de dados – SQLAlchemy + MySQL ---
+sqlalchemy==2.0.25
+mysql-connector-python==8.3.0
+python-dotenv==1.0.0
+
+# --- Autenticação JWT ---
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# --- HTTP cliente (busca taxas BCB) ---
+httpx==0.26.0
+
+# --- Testes ---
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-mock==3.12.0
+
+# --- Lint / Formatação (opcional) ---
+ruff==0.1.9
